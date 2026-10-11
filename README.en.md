@@ -64,6 +64,16 @@ curl -sS -x http://127.0.0.1:7890 --connect-to ping0.cc:443:104.218.235.243:443 
 - `scripts/patch_flclash_windows.py` — write hosts entries into FlClash (Windows) config, with
   auto-backup and a running-process guard.
 
+## Security notes
+
+- This repo contains **no** credentials, subscription links, node details, or private configs.
+- `find_working_ip.py` is **read-only** probing (DoH lookups + TCP/TLS reachability tests) and
+  modifies nothing; the TLS probe neither verifies certificates nor sends any data.
+- `patch_flclash_windows.py` writes only to your local FlClash config, with automatic backups,
+  and never transmits anything.
+- Use the script sources from **this repo** (or review them yourself) rather than random
+  "one-click" scripts for client configuration changes.
+
 ## License
 
 MIT

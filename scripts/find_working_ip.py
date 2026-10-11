@@ -77,6 +77,8 @@ def tcp_tls_test(ip: str, port: int, sni: str, timeout: float):
     ms = (time.monotonic() - t0) * 1000
     if sni and port == 443:
         try:
+            # 安全说明: 这里只做"握手可达性"探测 —— 不校验证书、不发送任何数据、
+            # 握手完成即立刻关闭, 不会泄露任何信息; 真正的业务连接由客户端正常校验证书。
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
@@ -138,7 +140,13 @@ def main(argv=None) -> int:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("domains", nargs="+", help="要探测的域名, 如 ping0.cc")
-    parser.add_argument("--doh", nargs="*", default=DEFAULT_DOH, help="DoH 服务器列表")
+    parser.add_argument(
+        "--doh",
+        action="append",
+        default=None,
+        metavar="DOH_URL",
+        help="DoH 服务器地址, 可重复指定(如 --doh URL1 --doh URL2); 默认使用内置列表",
+    )
     parser.add_argument("--port", type=int, default=443, help="探测端口")
     parser.add_argument(
         "--timeout",
@@ -152,11 +160,13 @@ def main(argv=None) -> int:
     )
     args = parser.parse_args(argv)
 
+    dohs = args.doh or DEFAULT_DOH
+
     print("== 1) 多解析器查询 (A 记录) ==")
     per_domain = {}
     for domain in args.domains:
         records = {}
-        for doh in args.doh:
+        for doh in dohs:
             host = urllib.parse.urlsplit(doh).netloc or doh
             try:
                 ips = doh_query(doh, domain, "A", args.timeout)
@@ -172,7 +182,7 @@ def main(argv=None) -> int:
     print("== 2) AAAA 记录(仅提示) ==")
     for domain in args.domains:
         try:
-            aaaa = doh_query(args.doh[0], domain, "AAAA", args.timeout)
+            aaaa = doh_query(dohs[0], domain, "AAAA", args.timeout)
         except Exception:  # noqa: BLE001
             aaaa = []
         if aaaa:

@@ -135,7 +135,7 @@ curl -s 'https://doh.pub/dns-query?name=ping0.cc&type=A' -H 'accept: application
 python scripts/find_working_ip.py ping0.cc www.ping0.cc cdn.ping0.cc
 
 # 常用参数
-python scripts/find_working_ip.py --doh https://doh.pub/dns-query https://dns.google/resolve example.com
+python scripts/find_working_ip.py --doh https://doh.pub/dns-query --doh https://dns.google/resolve example.com
 python scripts/find_working_ip.py --proxy http://127.0.0.1:7890 ping0.cc   # 顺手做一次代理实测
 ```
 
@@ -207,6 +207,15 @@ hosts 固定 + 走代理更稳。而且"按域名加直连规则"只解决主域
   修复后全部 200，页面完整渲染。
 
 ---
+
+## 安全说明（本仓库）
+
+- 本仓库**不包含**任何个人凭证、订阅链接、节点信息或私密配置。
+- `find_working_ip.py`：只做**只读**网络探测（DoH 查询 + TCP/TLS 握手可达性测试），
+  不修改任何文件；其 TLS 探测不校验证书、不发送任何数据（握手完成即关闭，见脚本内注释）。
+- `patch_flclash_windows.py`：只写入本机 FlClash 配置文件，写入前自动备份，
+  不向任何远程服务发送数据。
+- 请使用**本仓库的脚本源码**（或自行审阅后再用）；不要用来路不明的"一键脚本"修改你的客户端配置。
 
 ## 免责声明
 
